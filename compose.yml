@@ -1,0 +1,41 @@
+services:
+
+  app:
+    build:
+      context: .
+    container_name: magic_hiring
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U candidate_search -d job_candidates" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PASSWORD=${PASSWORD}
+      - DB_HOSTNAME=${DB_HOSTNAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+
+
+  db:
+    image: ankane/pgvector:latest
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PORT: ${DB_PORT}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - mysql_db:/var/lib/mysql
+      - ./experimental/database/init:/docker-entrypoint-initdb.d  # Auto run init script
+
+
+volumes:
+  mysql_db:

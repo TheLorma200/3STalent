@@ -1,0 +1,16 @@
+services:
+
+  app:
+    ports:
+      - '8501:8501'
+    volumes:
+      - ./:/magic-hiring
+    profiles:
+      - streamlit
+    depends_on:
+      - db
+
+
+  db:
+    ports:
+      - '5433:5433'

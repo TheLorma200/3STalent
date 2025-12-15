@@ -1,0 +1,1 @@
+-- Placeholder DDL for hiring_db

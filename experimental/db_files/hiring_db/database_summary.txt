@@ -1,0 +1,2 @@
+Database: hiring_db
+Dialect: PostgreSQL
