@@ -930,18 +930,18 @@ def render_chat_interface():
                     table = create_table(df)
                     st.plotly_chart(table, use_container_width=True, key=f"table_chat_{idx}")
 
-                    fig = create_graph(df, st.session_state.graph_type)
-                    if fig is None:
-                        st.warning(f"Il grafico non supporta la visualizzazione di questi dati")
-                        fig = go.Figure()
-                        fig.update_layout(
-                            title="Grafico non disponibile",
-                            plot_bgcolor='white',
-                            paper_bgcolor='white',
-                            font=dict(color=THEME_COLORS['text_primary'])
-                        )
-
-                    st.plotly_chart(fig, use_container_width=True, key=f"chart_chat_{idx}")
+                    # fig = create_graph(df, st.session_state.graph_type)
+                    # if fig is None:
+                    #     st.warning(f"Il grafico non supporta la visualizzazione di questi dati")
+                    #     fig = go.Figure()
+                    #     fig.update_layout(
+                    #         title="Grafico non disponibile",
+                    #         plot_bgcolor='white',
+                    #         paper_bgcolor='white',
+                    #         font=dict(color=THEME_COLORS['text_primary'])
+                    #     )
+                    #
+                    # st.plotly_chart(fig, use_container_width=True, key=f"chart_chat_{idx}")
 
                 if message["role"] == "assistant" and "expander_content" in message:
                     expander = st.expander("Relevant Scenarios Used")
@@ -1964,7 +1964,7 @@ def main():
     st.markdown(
         """
         <div class="app-header">
-            <h1>🤖 SQLartisan</h1>
+            <h1>🤖 Demo 3sTalent</h1>
         </div>
         """,
         unsafe_allow_html=True,

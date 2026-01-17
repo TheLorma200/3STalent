@@ -51,7 +51,7 @@ def main():
 
     # Create embeddings for tables
     db_embeddings_extractor = DBEmbeddingsExtractor(sql_database,embeddings_model_type='openai',batch_size=32)
-    db_embeddings_extractor.create_db_embeddings()
+    db_embeddings_extractor.create_db_embeddings_consolidated()
 
 if __name__ == "__main__":
     main()

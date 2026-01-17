@@ -14,9 +14,13 @@ from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
 from data_preparation.utils.db_embeddings_extractor import DBEmbeddingsExtractor
-
+import logging
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
@@ -36,8 +40,6 @@ class DatabaseManager:
         connection_string = f"postgresql://{self.db_config['user']}:{self.db_config['password']}@{self.db_config['host']}:{self.db_config['port']}/{self.db_config['database']}"
         self.engine = create_engine(connection_string)
         self.sql_database = SQLDatabase(self.engine)
-
-
 
     @staticmethod
     def _clean_value(value):
@@ -96,12 +98,12 @@ class DatabaseManager:
             return False, None
 
         except Exception as e:
-            print(f"Errore nel controllo email duplicata: {str(e)}")
+            logger.error(f"Errore nel controllo email duplicata: {str(e)}")
             return False, None
 
     def insert_candidate_complete(self, candidate_data: Dict) -> Tuple[bool, Optional[int], str]:
         """
-        Insert complete candidate data including all related tables and generate embedding
+        Insert complete candidate data including all related tables and generate CONSOLIDATED embedding
 
         Args:
             candidate_data: Dictionary containing all candidate information
@@ -138,31 +140,145 @@ class DatabaseManager:
             if candidate_data.get("competenze"):
                 self._insert_competenze(cursor, candidato_id, candidate_data["competenze"])
 
-            # Commit all changes
+            # Commit all changes BEFORE generating embeddings
             conn.commit()
             cursor.close()
             conn.close()
 
-            # 5. Generate embeddings for the new candidate (after commit)
-            try:
-                embeddings_extractor = DBEmbeddingsExtractor(
-                    sql_database=self.sql_database,
-                    embeddings_model_type='openai',
-                    batch_size=10
-                )
-                embeddings_extractor.generate_embeddings_for_candidate(candidato_id)
-            except Exception as e:
-                print(f"Warning: Failed to generate embeddings: {str(e)}")
-                # Don't fail the insertion if embeddings fail
-                return True, candidato_id, f"Candidato inserito con successo (embedding generation failed: {str(e)})"
+            # 5. Generate CONSOLIDATED embedding for the new candidate (after commit)
+            logger.info(f"Generating consolidated embedding for candidate {candidato_id}...")
+            embedding_success, embedding_message = self.generate_embeddings_for_candidate(candidato_id)
 
-            return True, candidato_id, "Candidato inserito con successo"
+            if not embedding_success:
+                logger.warning(f"Embedding generation warning: {embedding_message}")
+                return True, candidato_id, f"Candidato inserito con successo (Warning: {embedding_message})"
+
+            logger.info(f"✅ {embedding_message}")
+            return True, candidato_id, "Candidato inserito con successo con embedding consolidato"
 
         except Exception as e:
             if conn:
                 conn.rollback()
                 conn.close()
+            logger.error(f"Errore durante l'inserimento: {str(e)}", exc_info=True)
             return False, None, f"Errore durante l'inserimento: {str(e)}"
+
+    def generate_embeddings_for_candidate(
+        self,
+        candidato_id: int,
+        extractor: Optional[DBEmbeddingsExtractor] = None
+    ) -> Tuple[bool, str]:
+        """
+        Generate CONSOLIDATED embedding for a candidate including all related data.
+
+        Args:
+            candidato_id: ID of the candidate
+            extractor: Optional pre-initialized DBEmbeddingsExtractor instance
+
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
+        try:
+            # Initialize extractor if not provided
+            if extractor is None:
+                extractor = DBEmbeddingsExtractor(
+                    sql_database=self.sql_database,
+                    embeddings_model_type='openai',
+                    batch_size=10
+                )
+
+            # Generate consolidated embedding
+            result = extractor.generate_embedding_for_candidate_comprehensive(candidato_id)
+
+            if result['success']:
+                message = f"Embedding generato con successo ({result['text_length']} caratteri)"
+                return True, message
+            else:
+                return False, result['message']
+
+        except Exception as e:
+            error_msg = f"Errore durante la generazione dell'embedding: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            return False, error_msg
+
+    def update_candidate_data(
+        self,
+        candidato_id: int,
+        updated_data: Dict,
+        regenerate_embedding: bool = True
+    ) -> Tuple[bool, str]:
+        """
+        Update candidate data and optionally regenerate embedding
+
+        Args:
+            candidato_id: ID of the candidate to update
+            updated_data: Dictionary with updated fields
+            regenerate_embedding: Whether to regenerate embedding after update
+
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
+        conn = None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            # Build dynamic update query based on provided fields
+            update_fields = []
+            values = []
+
+            allowed_fields = [
+                'nome', 'cognome', 'email', 'telefono', 'codice_fiscale',
+                'data_nascita', 'luogo_nascita', 'genere', 'indirizzo',
+                'citta', 'provincia', 'cap', 'linkedin', 'portfolio',
+                'disponibilita_trasferte', 'disponibilita_remoto',
+                'lettera_presentazione', 'profilo_sintetico', 'stato_candidato'
+            ]
+
+            for field in allowed_fields:
+                if field in updated_data:
+                    update_fields.append(f"{field} = %s")
+                    values.append(self._clean_value(updated_data[field]))
+
+            if not update_fields:
+                return False, "Nessun campo da aggiornare"
+
+            # Add timestamp and embedding refresh flag
+            update_fields.append("data_ultimo_aggiornamento = %s")
+            values.append(datetime.now())
+
+            if regenerate_embedding:
+                update_fields.append("embedding_needs_refresh = %s")
+                values.append(True)
+
+            # Add candidato_id for WHERE clause
+            values.append(candidato_id)
+
+            query = f"""
+                UPDATE candidati 
+                SET {', '.join(update_fields)}
+                WHERE id_candidato = %s
+            """
+
+            cursor.execute(query, values)
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            # Regenerate embedding if requested
+            if regenerate_embedding:
+                embedding_success, embedding_message = self.generate_embeddings_for_candidate(candidato_id)
+                if not embedding_success:
+                    logger.warning(f"Embedding regeneration warning: {embedding_message}")
+
+            return True, "Candidato aggiornato con successo"
+
+        except Exception as e:
+            if conn:
+                conn.rollback()
+                conn.close()
+            logger.error(f"Errore durante l'aggiornamento: {str(e)}", exc_info=True)
+            return False, f"Errore durante l'aggiornamento: {str(e)}"
 
     def _insert_candidato(self, cursor, candidato: Dict) -> Optional[int]:
         """Insert candidate into candidati table"""
@@ -175,7 +291,8 @@ class DatabaseManager:
                 linkedin, portfolio,
                 disponibilita_trasferte, disponibilita_remoto,
                 lettera_presentazione, profilo_sintetico,
-                stato_candidato, data_inserimento, data_ultimo_aggiornamento
+                stato_candidato, data_inserimento, data_ultimo_aggiornamento,
+                embedding_needs_refresh
             ) VALUES (
                 %s, %s, %s, %s, %s,
                 %s, %s, %s,
@@ -183,7 +300,8 @@ class DatabaseManager:
                 %s, %s,
                 %s, %s,
                 %s, %s,
-                %s, %s, %s
+                %s, %s, %s,
+                %s
             ) RETURNING id_candidato
         """
 
@@ -202,13 +320,14 @@ class DatabaseManager:
             self._clean_value(candidato.get("cap")),
             self._clean_value(candidato.get("linkedin")),
             self._clean_value(candidato.get("portfolio")),
-            candidato.get("disponibilita_trasferte"),  # Already boolean
-            candidato.get("disponibilita_remoto"),      # Already boolean
+            candidato.get("disponibilita_trasferte", False),  # Already boolean
+            candidato.get("disponibilita_remoto", False),      # Already boolean
             self._clean_value(candidato.get("lettera_presentazione")),
             self._clean_value(candidato.get("profilo_sintetico")),
             'nuovo',  # stato_candidato default
             datetime.now(),
-            datetime.now()
+            datetime.now(),
+            True  # Mark for embedding generation
         )
 
         cursor.execute(query, values)

@@ -27,6 +27,10 @@ CREATE TABLE candidati (
     data_ultimo_aggiornamento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     profilo_sintetico TEXT,
     -- Single comprehensive embedding
+    embedding_generated_at TIMESTAMP,
+    embedding_version VARCHAR(50) DEFAULT 'v1_consolidated',
+    embedding_text_length INTEGER,
+    embedding_needs_refresh BOOLEAN DEFAULT FALSE,
     embedding vector(1536)
 );
 
@@ -48,7 +52,8 @@ CREATE TABLE esperienze_lavorative (
     attuale BOOLEAN DEFAULT FALSE,
     referenze TEXT,
     progetti_rilevanti TEXT, -- Campo di testo libero per progetti rilevanti
-    -- Single comprehensive embedding
+    -- Embeddings
+
     embedding vector(1536)
 );
 

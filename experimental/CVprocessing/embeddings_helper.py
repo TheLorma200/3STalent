@@ -1,12 +1,9 @@
 """
 Helper script to generate embeddings for candidates after CV upload.
-This can be run manually or integrated into the upload flow.
+Now uses CONSOLIDATED embedding approach.
 """
-
 import sys
 from pathlib import Path
-
-# Add parent directory to path to import modules
 sys.path.append(str(Path(__file__).parent))
 
 from CVDatabaseConnectionManager import database_manager
@@ -14,22 +11,24 @@ from llama_index.core import SQLDatabase
 from sqlalchemy import create_engine
 import os
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Import the DBEmbeddingsExtractor from your existing file
-# Adjust the import path based on your project structure
 try:
     from data_preparation.utils.db_embeddings_extractor import DBEmbeddingsExtractor
 except ImportError:
-    print("⚠️  Could not import DBEmbeddingsExtractor")
-    print("Make sure the embeddings extractor file is in the Python path")
+    logger.error("⚠️  Could not import DBEmbeddingsExtractor")
+    logger.error("Make sure the embeddings extractor file is in the Python path")
     sys.exit(1)
 
 
 def generate_embeddings_for_candidate(candidate_id: int) -> bool:
     """
-    Generate embeddings for a specific candidate
+    Generate CONSOLIDATED embedding for a specific candidate
 
     Args:
         candidate_id: ID of the candidate
@@ -50,64 +49,76 @@ def generate_embeddings_for_candidate(candidate_id: int) -> bool:
             batch_size=10
         )
 
-        # Generate embeddings
-        print(f"🔮 Generazione embeddings per candidato ID: {candidate_id}...")
-        success, message = database_manager.generate_embeddings_for_candidate(
-            candidate_id,
-            extractor
-        )
+        # Generate consolidated embedding
+        logger.info(f"🔮 Generating CONSOLIDATED embedding for candidate ID: {candidate_id}...")
+        result = extractor.generate_embedding_for_candidate_comprehensive(candidate_id)
 
-        if success:
-            print(f"✅ {message}")
+        if result['success']:
+            logger.info(f"✅ {result['message']}")
+            logger.info(f"   Text length: {result['text_length']} characters")
             return True
         else:
-            print(f"❌ {message}")
+            logger.error(f"❌ {result['message']}")
             return False
 
     except Exception as e:
-        print(f"❌ Errore: {str(e)}")
+        logger.error(f"❌ Error: {str(e)}", exc_info=True)
         return False
 
 
 def generate_embeddings_for_all_candidates():
-    """Generate embeddings for all candidates without embeddings"""
+    """Generate consolidated embeddings for all candidates without embeddings"""
     try:
         conn = database_manager.get_connection()
         cursor = conn.cursor()
 
-        # Find candidates without embeddings
+        # Find candidates without embeddings or those marked for refresh
         cursor.execute("""
-                       SELECT id_candidato, nome, cognome
-                       FROM candidati
-                       WHERE embedding IS NULL
-                       """)
-
+            SELECT id_candidato, nome, cognome
+            FROM candidati
+            WHERE embedding IS NULL 
+               OR embedding_needs_refresh = TRUE
+            ORDER BY id_candidato
+        """)
         candidates = cursor.fetchall()
+
         cursor.close()
         conn.close()
 
         if not candidates:
-            print("✅ Tutti i candidati hanno già gli embeddings")
+            logger.info("✅ All candidates have up-to-date consolidated embeddings")
             return
 
-        print(f"📋 Trovati {len(candidates)} candidati senza embeddings")
+        logger.info(f"📋 Found {len(candidates)} candidates needing embeddings")
 
+        success_count = 0
         for candidate_id, nome, cognome in candidates:
-            print(f"\n🔄 Processando: {nome} {cognome} (ID: {candidate_id})")
-            generate_embeddings_for_candidate(candidate_id)
+            logger.info(f"\n🔄 Processing: {nome} {cognome} (ID: {candidate_id})")
+            if generate_embeddings_for_candidate(candidate_id):
+                success_count += 1
 
-        print("\n✅ Processo completato!")
+        logger.info(f"\n✅ Process completed! {success_count}/{len(candidates)} successful")
 
     except Exception as e:
-        print(f"❌ Errore: {str(e)}")
+        logger.error(f"❌ Error: {str(e)}", exc_info=True)
 
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description='Generate embeddings for candidates')
-    parser.add_argument('--candidate-id', type=int, help='ID of specific candidate')
-    parser.add_argument('--all', action='store_true', help='Process all candidates without embeddings')
+    parser = argparse.ArgumentParser(
+        description='Generate CONSOLIDATED embeddings for candidates'
+    )
+    parser.add_argument(
+        '--candidate-id',
+        type=int,
+        help='ID of specific candidate'
+    )
+    parser.add_argument(
+        '--all',
+        action='store_true',
+        help='Process all candidates without embeddings'
+    )
 
     args = parser.parse_args()
 
