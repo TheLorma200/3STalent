@@ -37,13 +37,7 @@ class DatabaseManager:
         self.engine = create_engine(connection_string)
         self.sql_database = SQLDatabase(self.engine)
 
-        # Initialize embedding extractor
-        self.embedding_extractor = DBEmbeddingsExtractor(
-            sql_database=self.sql_database,
-            embeddings_model_type='openai',
-            batch_size=100
-        )
-        self.embedding_model = self.embedding_extractor.get_embedding_model('openai')
+
 
     @staticmethod
     def _clean_value(value):
@@ -105,89 +99,6 @@ class DatabaseManager:
             print(f"Errore nel controllo email duplicata: {str(e)}")
             return False, None
 
-    def _generate_candidate_embedding_text(self, candidato_id: int) -> str:
-        """
-        Generate the text representation of a candidate for embedding generation.
-        This uses the same format as the DBEmbeddingsExtractor.
-
-        Args:
-            candidato_id: The candidate ID
-
-        Returns:
-            Formatted text for embedding
-        """
-        try:
-            with self.engine.connect() as conn:
-                # Fetch candidate data
-                result = conn.execute(
-                    text("SELECT * FROM candidati WHERE id_candidato = :id"),
-                    {"id": candidato_id}
-                )
-                row = result.fetchone()
-
-                if not row:
-                    return ""
-
-                # Convert to dict
-                candidate_data = dict(row._mapping)
-
-                # Use the same formatter as DBEmbeddingsExtractor
-                return f"""
-                Nome: {candidate_data['nome']} {candidate_data['cognome']}
-                Email: {candidate_data['email']}
-                Codice Fiscale: {candidate_data.get('codice_fiscale', '')}
-                Data Nascita: {candidate_data.get('data_nascita', '')}
-                Luogo Nascita: {candidate_data.get('luogo_nascita', '')}
-                Indirizzo: {candidate_data.get('indirizzo', '')}, {candidate_data.get('citta', '')}, {candidate_data.get('provincia', '')}, {candidate_data.get('cap', '')}
-                Contatti: {candidate_data.get('telefono', '')}, {candidate_data.get('email', '')}
-                Profili: LinkedIn: {candidate_data.get('linkedin', '')}, Portfolio: {candidate_data.get('portfolio', '')}
-                Stato: {candidate_data.get('stato_candidato', 'nuovo')}
-                Disponibilità: Trasferte: {"Sì" if candidate_data.get('disponibilita_trasferte') else "No"}, 
-                               Remoto: {"Sì" if candidate_data.get('disponibilita_remoto') else "No"}
-                Profilo Sintetico: {candidate_data.get('profilo_sintetico', '')}
-                Lettera Presentazione: {candidate_data.get('lettera_presentazione', '')}
-                """
-        except Exception as e:
-            print(f"Errore nella generazione del testo per embedding: {str(e)}")
-            return ""
-
-    def _update_candidate_embedding(self, candidato_id: int):
-        """
-        Generate and update embedding for a specific candidate.
-
-        Args:
-            candidato_id: The candidate ID to generate embedding for
-        """
-        try:
-            # Generate text for embedding
-            candidate_text = self._generate_candidate_embedding_text(candidato_id)
-
-            if not candidate_text:
-                print(f"Warning: Could not generate text for candidate {candidato_id}")
-                return
-
-            # Generate embedding
-            embedding = self.embedding_model.get_text_embedding(candidate_text)
-
-            # Update database with embedding
-            with self.engine.connect() as conn:
-                update_query = text("""
-                    UPDATE candidati 
-                    SET embedding = CAST(:embedding_json AS vector) 
-                    WHERE id_candidato = :id
-                """)
-
-                embedding_json = json.dumps(embedding)
-                conn.execute(update_query, {"embedding_json": embedding_json, "id": candidato_id})
-                conn.commit()
-
-            print(f"✓ Embedding generato per candidato ID {candidato_id}")
-
-        except Exception as e:
-            print(f"Errore nella generazione dell'embedding per candidato {candidato_id}: {str(e)}")
-            # Non blocchiamo l'inserimento se l'embedding fallisce
-            pass
-
     def insert_candidate_complete(self, candidate_data: Dict) -> Tuple[bool, Optional[int], str]:
         """
         Insert complete candidate data including all related tables and generate embedding
@@ -209,7 +120,7 @@ class DatabaseManager:
                 if exists:
                     return False, None, f"Email già presente nel database (Candidato: {existing['nome']} {existing['cognome']})"
 
-            # 1. Insert candidato (profilo_sintetico already includes languages)
+            # 1. Insert candidato
             candidato_id = self._insert_candidato(cursor, candidate_data["candidato"])
 
             if not candidato_id:
@@ -223,18 +134,27 @@ class DatabaseManager:
             if candidate_data.get("formazione"):
                 self._insert_formazione(cursor, candidato_id, candidate_data["formazione"])
 
-            # 4. Insert competenze (as JSON in competenze_candidati)
+            # 4. Insert competenze
             if candidate_data.get("competenze"):
                 self._insert_competenze(cursor, candidato_id, candidate_data["competenze"])
 
-            # Commit all changes first
+            # Commit all changes
             conn.commit()
             cursor.close()
             conn.close()
 
-            # 5. Generate and update embedding for the candidate (after commit)
-            print(f"Generazione embedding per candidato ID {candidato_id}...")
-            self._update_candidate_embedding(candidato_id)
+            # 5. Generate embeddings for the new candidate (after commit)
+            try:
+                embeddings_extractor = DBEmbeddingsExtractor(
+                    sql_database=self.sql_database,
+                    embeddings_model_type='openai',
+                    batch_size=10
+                )
+                embeddings_extractor.generate_embeddings_for_candidate(candidato_id)
+            except Exception as e:
+                print(f"Warning: Failed to generate embeddings: {str(e)}")
+                # Don't fail the insertion if embeddings fail
+                return True, candidato_id, f"Candidato inserito con successo (embedding generation failed: {str(e)})"
 
             return True, candidato_id, "Candidato inserito con successo"
 

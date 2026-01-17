@@ -267,6 +267,110 @@ class DBEmbeddingsExtractor:
 
             print("\nAll tables processed successfully!")
 
+    def generate_embedding_for_record(self, table_name: str, record_id: int, embedding_model=None):
+        """
+        Generate and update embedding for a single record in a specific table
+
+        Args:
+            table_name: Name of the table
+            record_id: ID of the record to process
+            embedding_model: Optional pre-initialized embedding model (to avoid reinitializing)
+
+        Returns:
+            bool: Success status
+        """
+        # Find the table config
+        table_config = next((t for t in TABLE_CONFIGS if t['name'] == table_name), None)
+        if not table_config:
+            print(f"Table {table_name} not found in TABLE_CONFIGS")
+            return False
+
+        # Initialize embedding model if not provided
+        if embedding_model is None:
+            embedding_model = self.get_embedding_model(self.embeddings_model_type)
+
+        with self.sql_database.engine.connect() as conn:
+            # Fetch the specific record
+            query = f"{table_config['query']} WHERE {table_config['id_column']} = :record_id"
+            result = conn.execute(text(query), {"record_id": record_id})
+            record = dict(result.fetchone()._mapping) if result.rowcount > 0 else None
+
+            if not record:
+                print(f"Record with ID {record_id} not found in {table_name}")
+                return False
+
+            # Format text and generate embedding
+            formatted_text = table_config['formatter'](record)
+            embedding = embedding_model.get_text_embedding(formatted_text)
+
+            # Update database
+            self.update_embeddings(conn, table_name, table_config['id_column'], [(record_id, embedding)])
+
+            print(f"Generated embedding for {table_name} record ID {record_id}")
+            return True
+
+    def generate_embeddings_for_candidate(self, candidato_id: int):
+        """
+        Generate embeddings for a newly inserted candidate and all related records
+
+        Args:
+            candidato_id: ID of the candidate
+
+        Returns:
+            dict: Status of embedding generation for each table
+        """
+        print(f"\nGenerating embeddings for candidate ID {candidato_id}...")
+
+        # Initialize embedding model once for all operations
+        embedding_model = self.get_embedding_model(self.embeddings_model_type)
+
+        results = {}
+
+        # 1. Generate embedding for candidato
+        results['candidati'] = self.generate_embedding_for_record(
+            'candidati', candidato_id, embedding_model
+        )
+
+        with self.sql_database.engine.connect() as conn:
+            # 2. Generate embeddings for esperienze_lavorative
+            exp_query = "SELECT id_esperienza FROM esperienze_lavorative WHERE id_candidato = :candidato_id"
+            exp_result = conn.execute(text(exp_query), {"candidato_id": candidato_id})
+            exp_ids = [row[0] for row in exp_result]
+
+            results['esperienze_lavorative'] = []
+            for exp_id in exp_ids:
+                success = self.generate_embedding_for_record(
+                    'esperienze_lavorative', exp_id, embedding_model
+                )
+                results['esperienze_lavorative'].append({'id': exp_id, 'success': success})
+
+            # 3. Generate embeddings for formazione
+            form_query = "SELECT id_formazione FROM formazione WHERE id_candidato = :candidato_id"
+            form_result = conn.execute(text(form_query), {"candidato_id": candidato_id})
+            form_ids = [row[0] for row in form_result]
+
+            results['formazione'] = []
+            for form_id in form_ids:
+                success = self.generate_embedding_for_record(
+                    'formazione', form_id, embedding_model
+                )
+                results['formazione'].append({'id': form_id, 'success': success})
+
+            # 4. Generate embedding for competenze_candidati
+            comp_query = "SELECT COUNT(*) FROM competenze_candidati WHERE id_candidato = :candidato_id"
+            comp_result = conn.execute(text(comp_query), {"candidato_id": candidato_id})
+            has_competenze = comp_result.scalar() > 0
+
+            if has_competenze:
+                results['competenze_candidati'] = self.generate_embedding_for_record(
+                    'competenze_candidati', candidato_id, embedding_model
+                )
+            else:
+                results['competenze_candidati'] = None
+
+        print(f"Embedding generation complete for candidate {candidato_id}")
+        return results
+
     def __init__(self,sql_database,embeddings_model_type,batch_size):
 
         self.batch_size = batch_size

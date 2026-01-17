@@ -566,10 +566,10 @@ FALSE,
 'Cerchiamo una figura dinamica e creativa, con capacità di lavoro in contesti destrutturati e non formali. Importante la predisposizione a lavorare in orari non convenzionali (pomeriggio/sera) e la capacità di costruire relazioni autentiche con gli adolescenti. Preferibile conoscenza del territorio e delle sue dinamiche.');
 
 
-
-INSERT INTO candidati (nome, cognome, codice_fiscale, data_nascita, luogo_nascita, genere, indirizzo, citta, provincia, cap, telefono, email, linkedin, portfolio, stato_candidato, disponibilita_trasferte, disponibilita_remoto, note_personali, lettera_presentazione) VALUES
+INSERT INTO candidati (nome, cognome, codice_fiscale, data_nascita, luogo_nascita, genere, indirizzo, citta, provincia, cap, telefono, email, linkedin, portfolio, stato_candidato, disponibilita_trasferte, disponibilita_remoto, profilo_sintetico, note_personali, lettera_presentazione) VALUES
 -- Additional candidati (9-16)
 ('Chiara', 'Moretti', 'MRTCHR91M48F205T', '1991-08-08', 'Milano', 'F', 'Via Solferino 25', 'Milano', 'MI', '20121', '333 9876543', 'chiara.moretti@email.it', 'linkedin.com/in/chiaramoretti', NULL, 'nuovo', TRUE, TRUE,
+'Pedagogista specializzata in educazione inclusiva con tre anni di esperienza come educatrice di sostegno in scuole primarie. Esperta nell''applicazione del metodo ABA e nell''utilizzo della CAA (Comunicazione Aumentativa Alternativa) per bambini con disturbi dello spettro autistico. Ha sviluppato competenze nella creazione di piani educativi individualizzati in collaborazione con insegnanti e famiglie. Appassionata di tecnologie assistive e innovazione pedagogica, con spiccate capacità relazionali e attitudine al lavoro di équipe multidisciplinare.',
 'Sono una pedagogista specializzata in educazione inclusiva con particolare attenzione ai bambini con disturbi dello spettro autistico. Ho sviluppato competenze nell''applicazione del metodo ABA e nell''utilizzo della CAA (Comunicazione Aumentativa Alternativa). Negli ultimi tre anni ho lavorato come educatrice di sostegno in diverse scuole primarie, collaborando con insegnanti e famiglie per creare piani educativi individualizzati efficaci. Sono particolarmente appassionata di tecnologie assistive e di come possano migliorare l''apprendimento. Cerco un ambiente di lavoro che valorizzi l''innovazione pedagogica e il lavoro di équipe multidisciplinare.',
 'Gentile Responsabile della Selezione,
 
@@ -589,6 +589,7 @@ Cordiali saluti,
 Chiara Moretti'),
 
 ('Paolo', 'Rizzo', 'RZZPLA83E17H501S', '1983-05-17', 'Roma', 'M', 'Via Cassia 234', 'Roma', 'RM', '00123', '339 8765432', 'paolo.rizzo@email.it', 'linkedin.com/in/paolorizzo', 'paolorizzo.portfolio.it', 'in_valutazione', FALSE, TRUE,
+'Assistente sociale con esperienza specifica nel settore delle dipendenze patologiche, maturata sia in servizi pubblici (SerD) che in comunità terapeutiche. Cinque anni di esperienza presso il SerD di Roma Est nella presa in carico di persone con dipendenza da sostanze, alcol e gioco d''azzardo. Competenze in colloqui motivazionali, progettazione di percorsi terapeutici individualizzati, gestione di gruppi terapeutici e facilitazione di gruppi di auto-mutuo aiuto per familiari. Specializzato in programmi di riduzione del danno e progetti di strada. Buona conoscenza delle politiche sociali e sanitarie del settore e delle metodologie evidence-based.',
 'Sono un assistente sociale con esperienza specifica nel settore delle dipendenze patologiche. Ho lavorato sia in servizi pubblici (SerD) che in comunità terapeutiche, sviluppando competenze nella presa in carico di persone con dipendenza da sostanze, alcol e gioco d''azzardo. Mi occupo di colloqui motivazionali, progettazione di percorsi terapeutici individualizzati e lavoro di rete con i servizi territoriali. Negli ultimi anni mi sono specializzato nei programmi di riduzione del danno e nei progetti di strada rivolti a persone con dipendenze. Ho una buona conoscenza delle politiche sociali e sanitarie del settore e delle metodologie di intervento evidence-based.',
 'Spettabile Direzione,
 
@@ -608,6 +609,7 @@ Distinti saluti,
 Paolo Rizzo'),
 
 ('Elena', 'Costa', 'CSTLNE89B49G273R', '1989-02-09', 'Palermo', 'F', 'Via Maqueda 78', 'Palermo', 'PA', '90133', '347 7654321', 'elena.costa@email.it', 'linkedin.com/in/elenacosta', 'elenacosta.portfolio.it', 'approvato', TRUE, TRUE,
+'Psicologa specializzata in Psicologia di Comunità con esperienza specifica nel settore dell''immigrazione e dell''intercultura. Tre anni come coordinatrice di progetto SAI per minori stranieri non accompagnati, gestendo équipe multidisciplinari e rapporti con reti territoriali e istituzioni. Competenze in supporto psicologico a persone con traumi migratori, gestione di gruppi multiculturali e formazione degli operatori su tematiche interculturali. Parla fluentemente italiano, inglese, francese, con buona conoscenza di spagnolo e nozioni di arabo. Spiccate capacità organizzative e relazionali in contesti multiculturali.',
 'Sono una psicologa con specializzazione in Psicologia di Comunità e un''esperienza specifica nel settore dell''immigrazione e dell''intercultura. Ho lavorato in progetti di accoglienza per richiedenti asilo e rifugiati, occupandomi di supporto psicologico, mediazione culturale e facilitazione dell''integrazione sociale. Ho competenze nella gestione di gruppi multiculturali e nella formazione degli operatori su tematiche interculturali. Parlo fluentemente italiano, inglese e francese, con una buona conoscenza dello spagnolo e nozioni di arabo. Sono particolarmente interessata ai progetti che promuovono il dialogo interculturale e l''empowerment delle comunità migranti.',
 'Gentile Direzione,
 
@@ -627,6 +629,7 @@ Cordiali saluti,
 Elena Costa'),
 
 ('Marco', 'Vitale', 'VTLMRC76C21L219S', '1976-03-21', 'Torino', 'M', 'Corso Re Umberto 45', 'Torino', 'TO', '10128', '335 6543210', 'marco.vitale@email.it', 'linkedin.com/in/marcovitale', NULL, 'approvato', TRUE, FALSE,
+'Educatore professionale con lunga esperienza nel settore delle dipendenze patologiche e grave marginalità. Ha lavorato in comunità terapeutiche e servizi a bassa soglia, con formazione specifica in counseling sistemico-relazionale. Cinque anni come coordinatore di servizio housing first per persone senza dimora con problemi di dipendenza. Competenze specifiche nell''approccio alla riduzione del danno, gestione delle emergenze e costruzione di percorsi individualizzati. Resiliente con buone capacità di gestione dello stress, disponibile per turni notturni e weekend.',
 'Sono un educatore professionale con lunga esperienza nel settore delle dipendenze patologiche. Ho lavorato sia in comunità terapeutiche che in servizi a bassa soglia, sviluppando competenze specifiche nell''approccio alla riduzione del danno e nel trattamento delle diverse forme di dipendenza. Ho una formazione specifica in counseling sistemico-relazionale che integro nel mio lavoro educativo. Negli ultimi anni mi sono specializzato nei progetti di housing first per persone senza dimora con problemi di dipendenza. Sono particolarmente interessato a progetti innovativi che combinano l''approccio educativo con l''inserimento lavorativo e abitativo.',
 'Alla cortese attenzione della Direzione,
 
@@ -644,6 +647,7 @@ Distinti saluti,
 Marco Vitale'),
 
 ('Laura', 'Fabbri', 'FBBLRA84H64A944X', '1984-06-24', 'Bologna', 'F', 'Via Indipendenza 32', 'Bologna', 'BO', '40121', '339 5432109', 'laura.fabbri@email.it', 'linkedin.com/in/laurafabbri', NULL, 'nuovo', FALSE, TRUE,
+'Terapista occupazionale specializzata in riabilitazione neuromotoria e cognitiva con tre anni di esperienza presso il Centro di Riabilitazione "Nuove Prospettive". Competenze nella riabilitazione di persone con disabilità acquisite (post ictus, trauma cranico) e patologie neurodegenerative. Utilizza approccio centrato sulla persona, valorizzando autonomie residue e adattando l''ambiente alle esigenze specifiche. Esperta nell''utilizzo di ausili e tecnologie assistive per migliorare l''autonomia nella vita quotidiana. Creativa, paziente e con buone capacità di problem solving, abituata al lavoro in équipe multidisciplinari.',
 'Sono una terapista occupazionale specializzata in riabilitazione neuromotoria e cognitiva. Ho esperienza nella riabilitazione di persone con disabilità acquisite (post ictus, trauma cranico) e patologie neurodegenerative. Nel mio lavoro utilizzo un approccio centrato sulla persona, valorizzando le autonomie residue e adattando l''ambiente alle specifiche esigenze. Ho competenze nell''utilizzo di ausili e tecnologie assistive per migliorare l''autonomia nella vita quotidiana. Sono particolarmente interessata a progetti che integrano la riabilitazione tradizionale con attività espressive e ricreative, credendo fermamente nel potenziale terapeutico di queste attività.',
 'Spettabile Cooperativa,
 
@@ -663,6 +667,7 @@ Cordiali saluti,
 Laura Fabbri'),
 
 ('Alessandro', 'Romano', 'RMNLSN82P13E506Y', '1982-09-13', 'Lecce', 'M', 'Via Trinchese 42', 'Lecce', 'LE', '73100', '338 4321098', 'alessandro.romano@email.it', 'linkedin.com/in/alessandroromano', 'alessandroromano.portfolio.it', 'in_valutazione', TRUE, TRUE,
+'Infermiere con specializzazione in cure palliative e terapia del dolore, con otto anni di esperienza in hospice e assistenza domiciliare per pazienti terminali. Competenze tecniche specifiche nella gestione del dolore e dei sintomi, somministrazione di terapie complesse e monitoraggio della qualità di vita. Ha seguito corsi specifici su comunicazione difficile, elaborazione del lutto, supporto ai caregiver e prevenzione del burnout negli operatori. Utilizza approccio olistico che considera aspetti fisici, emotivi, relazionali e spirituali della sofferenza. Empatico con solidi confini professionali, disponibile per turni notturni e festivi.',
 'Sono un infermiere con specializzazione in cure palliative e terapia del dolore. Ho lavorato sia in hospice che in servizi di assistenza domiciliare per pazienti terminali, sviluppando competenze tecniche specifiche e un approccio particolarmente attento agli aspetti relazionali ed emotivi dell''assistenza. Ho esperienza nella gestione di terapie complesse, nel controllo del dolore e dei sintomi, e nel supporto alla famiglia. Ho seguito corsi specifici su comunicazione difficile, elaborazione del lutto e prevenzione del burnout negli operatori. Sono interessato a progetti che promuovono la diffusione delle cure palliative e il miglioramento della qualità di vita nelle fasi terminali della malattia.',
 'Gentile Direzione,
 
@@ -682,6 +687,7 @@ Distinti saluti,
 Alessandro Romano'),
 
 ('Giulia', 'Marini', 'MRNGLI77T50D612S', '1977-12-10', 'Firenze', 'F', 'Viale dei Mille 53', 'Firenze', 'FI', '50131', '347 3210987', 'giulia.marini@email.it', 'linkedin.com/in/giuliamarini', NULL, 'respinto', TRUE, FALSE,
+'Coordinatrice con esperienza nella gestione di servizi educativi per minori, maturata in comunità residenziali e centri diurni. Attualmente coordinatrice di comunità educativa per minori con responsabilità nella supervisione delle équipe educative, progettazione pedagogica e gestione delle relazioni con servizi invianti. Specializzata nella gestione di progetti per minori stranieri non accompagnati con particolare attenzione agli aspetti interculturali e ai percorsi di autonomia. Ha formazione specifica in coordinamento di servizi socio-educativi e supervisione pedagogica. Buone capacità organizzative e relazionali con approccio basato sulla valorizzazione delle competenze del team.',
 'Sono una coordinatrice con esperienza nella gestione di servizi educativi per minori. Ho lavorato sia in contesti di comunità residenziale che in centri diurni, sviluppando competenze nella supervisione delle équipe educative, nella progettazione pedagogica e nella gestione delle relazioni con i servizi invianti. Ho una formazione specifica in coordinamento di servizi socio-educativi e in supervisione pedagogica. Negli ultimi anni mi sono specializzata nella gestione di progetti per minori stranieri non accompagnati, con particolare attenzione agli aspetti interculturali e ai percorsi di autonomia. Sono particolarmente interessata a contesti lavorativi che valorizzano l''innovazione pedagogica e la qualità della relazione educativa.',
 'Alla cortese attenzione della Direzione,
 
@@ -701,6 +707,7 @@ Cordiali saluti,
 Giulia Marini'),
 
 ('Davide', 'Lombardi', 'LMBDVD88M09G702P', '1988-08-09', 'Pisa', 'M', 'Via San Francesco 21', 'Pisa', 'PI', '56127', '333 2109876', 'davide.lombardi@email.it', 'linkedin.com/in/davidelombardi', 'davidelombardi.portfolio.it', 'nuovo', FALSE, TRUE,
+'Fisioterapista con specializzazione in riabilitazione neurologica e geriatrica, con cinque anni di esperienza in RSA nella riabilitazione di pazienti anziani con patologie neurologiche e ortopediche. Competenze specifiche in tecniche di neuroriabilitazione (Bobath, Perfetti) e nell''utilizzo di tecnologie riabilitative avanzate. Ha sviluppato approccio riabilitativo personalizzato orientato al miglioramento dell''autonomia nelle attività quotidiane, con particolare interesse per la riabilitazione cognitivo-motoria e l''integrazione di attività ludiche e artistiche. Empatico, paziente e con buone capacità comunicative, orientato al lavoro in équipe multidisciplinare.',
 'Sono un fisioterapista con specializzazione in riabilitazione neurologica e geriatrica. Ho esperienza nella riabilitazione di pazienti con esiti di ictus, Parkinson, sclerosi multipla e altre patologie neurologiche. Utilizzo un approccio funzionale orientato al miglioramento dell''autonomia nelle attività quotidiane. Ho competenze specifiche in tecniche di neuroriabilitazione (Bobath, Perfetti) e nell''utilizzo di tecnologie riabilitative avanzate. Negli ultimi anni ho sviluppato un particolare interesse per la riabilitazione cognitivo-motoria e per l''utilizzo di attività ludiche e artistiche come complemento alla riabilitazione tradizionale. Sono orientato al lavoro in équipe multidisciplinare e alla personalizzazione del percorso riabilitativo.',
 'Spettabile Cooperativa,
 
@@ -718,7 +725,7 @@ Sono disponibile a un colloquio per approfondire la mia candidatura e conoscere 
 
 Cordiali saluti,
 Davide Lombardi');
-                                                                                                                                                                                                                                                                              -- Adding 5 more entries to candidati table
+                                                                                                                                                                                                                                                                          -- Adding 5 more entries to candidati table
 -- Inserimento di candidati di esempio
 INSERT INTO candidati (nome, cognome, codice_fiscale, data_nascita, luogo_nascita, genere, indirizzo, citta, provincia, cap, telefono, email, linkedin, portfolio, stato_candidato, disponibilita_trasferte, disponibilita_remoto, profilo_sintetico, note_personali, lettera_presentazione) VALUES
 ('Sofia', 'Bianchi', 'BNCSFN92L54F205R', '1992-07-14', 'Milano', 'F', 'Via Montenapoleone 12', 'Milano', 'MI', '20121', '333 1234567', 'sofia.bianchi@email.it', 'linkedin.com/in/sofiabianchi', NULL, 'nuovo', TRUE, FALSE,
